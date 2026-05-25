@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>WBS — DNA Combing Machine</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;background:#F0F2F5}
+#hdr{background:#1A237E;color:#FFF;padding:12px 20px;display:flex;justify-content:space-between;align-items:center}
+#hdr h1{font-size:15px;font-weight:500;letter-spacing:.2px}
+#hdr small{font-size:11px;opacity:.65}
+#cnv{overflow-x:auto;overflow-y:auto;background:#FFFFFF}
+#leg{padding:10px 20px;background:#ECEFF1;border-top:1px solid #DDD;font-size:11px;color:#555;display:flex;gap:18px;flex-wrap:wrap;line-height:1.8}
+</style>
+</head>
+<body>
+<div id="hdr">
+  <h1>WBS — DNA Combing Machine</h1>
+  <small>← role horizontalmente para navegar →</small>
+</div>
+<div id="cnv"><svg id="w"></svg></div>
+<div id="leg"></div>
+
+<script>
+const CW=94, RH=96, NW=88, NH=32, TH=24, TG=2, P=16, FS=10, TFS=9;
+
+const C = {
+  rt: {b:"#EF9F27", t:"#633806"},
+  pd: {b:"#0F6E56", t:"#FFFFFF"},
+  m1: {b:"#3C3489", t:"#FFFFFF"},
+  m2: {b:"#534AB7", t:"#FFFFFF"},
+  m3: {b:"#AFA9EC", t:"#26215C"},
+  e1: {b:"#72243E", t:"#FFFFFF"},
+  e2: {b:"#993556", t:"#FFFFFF"},
+  e3: {b:"#ED93B1", t:"#4B1528"},
+  s1: {b:"#0C447C", t:"#FFFFFF"},
+  s2: {b:"#185FA5", t:"#FFFFFF"},
+  s3: {b:"#85B7EB", t:"#042C53"},
+};
+
+// Task sequences
+const B = ["Especificação","Compra","Entrega","Testar"];
+const F = ["Projetar","DTM","Plano de\nProcesso","Fabricar","Testar"];
+const R = ["Verificar\nestado","Adaptar","Montar","Testar"];
+const E = ["Levantamento\nde carga","Adquirir\ncomponentes","Prototipagem","Teste","Fazer\nPlaca","Teste"];
+const S = ["Fluxograma","Programar","Testar"];
+
+const TR = {name:"DNA Combing\nMachine", ...C.rt, c:[
+  {name:"PDP", ...C.pd, tasks:[
+    "Análise do\nprojeto ant.","Definição dos\nrequisitos","Benchmarking",
+    "Geração de\nconceitos","Seleção do\nconceito","Detalhamento\nda solução"
+  ]},
+  {name:"Mecânica", ...C.m1, c:[{name:"Mecânica", ...C.m2, c:[
+    {name:"Motor de\npasso",        ...C.m3, tasks:R},
+    {name:"Redutor",                ...C.m3, tasks:F},
+    {name:"Polia",                  ...C.m3, tasks:R},
+    {name:"Fuso",                   ...C.m3, tasks:R},
+    {name:"Engrenagens",            ...C.m3, tasks:B},
+    {name:"Guia",                   ...C.m3, tasks:R},
+    {name:"Mancal",                 ...C.m3, tasks:R},
+    {name:"Suporte\ndas pinças",    ...C.m3, tasks:F},
+    {name:"Pinças para\nlamínulas", ...C.m3, tasks:F},
+    {name:"Suporte da\nsolução DNA",...C.m3, tasks:F},
+    {name:"Tampa",                  ...C.m3, tasks:F},
+    {name:"Suporte do\nmotor",      ...C.m3, tasks:F},
+    {name:"Base antivib.\ndo motor",...C.m3, tasks:F},
+    {name:"Pés\nantivibração",      ...C.m3, tasks:B},
+    {name:"Chassi",                 ...C.m3, tasks:F},
+    {name:"Suporte\nPCB + µC",      ...C.m3, tasks:F},
+    {name:"Case do\nFDC",           ...C.m3, tasks:F},
+  ]}]},
+  {name:"Eletrônica", ...C.e1, c:[{name:"Eletrônica", ...C.e2, c:[
+    {name:"Alimentação",   ...C.e3, tasks:E},
+    {name:"Driver do\nMotor",...C.e3, tasks:E},
+    {name:"FDC",           ...C.e3, tasks:E},
+    {name:"IHM",           ...C.e3, tasks:E},
+    {name:"PCB +\nFiação", ...C.e3, tasks:E},
+  ]}]},
+  {name:"Software", ...C.s1, c:[{name:"Software", ...C.s2, c:[
+    {name:"Referenci-\namento",     ...C.s3, tasks:S},
+    {name:"Rotina de\ncoleta",      ...C.s3, tasks:S},
+    {name:"Movimentação\nmanual",   ...C.s3, tasks:S},
+    {name:"Rotina de\nemergência",  ...C.s3, tasks:S},
+    {name:"Comunicação\nIHM",       ...C.s3, tasks:S},
+    {name:"Integração\ndos módulos",...C.s3, tasks:["Testar\nsistema"]},
+  ]}]},
+]};
+
+function cc(n){ return n.tasks ? 1 : (n.c?.reduce((s,ch)=>s+cc(ch),0)||1); }
+function ap(n,x,d){
+  n.lx = x + cc(n)*CW/2;
+  n.ly = d*RH + P;
+  if(n.c){ let cx=x; for(const ch of n.c){ ap(ch,cx,d+1); cx+=cc(ch)*CW; } }
+}
+function flat(n,a=[]){ a.push(n); n.c?.forEach(ch=>flat(ch,a)); return a; }
+
+ap(TR,0,0);
+const all = flat(TR);
+
+let W=0, H=0;
+all.forEach(n=>{
+  W = Math.max(W, n.lx+NW/2);
+  H = Math.max(H, n.ly+NH/2 + (n.tasks ? n.tasks.length*(TH+TG) : 0));
+});
+W+=P; H+=P;
+
+const svg = document.getElementById('w');
+svg.setAttribute('width', W);
+svg.setAttribute('height', H);
+
+const NS = 'http://www.w3.org/2000/svg';
+const mk = (tag,at,p) => {
+  const e = document.createElementNS(NS,tag);
+  Object.entries(at).forEach(([k,v]) => e.setAttribute(k,v));
+  p?.appendChild(e);
+  return e;
+};
+
+// Bus connectors (behind nodes)
+all.filter(n=>n.c?.length).forEach(n=>{
+  const y1=n.ly+NH/2, y2=n.c[0].ly-NH/2, by=(y1+y2)/2;
+  const xs=n.c.map(c=>c.lx), lx=Math.min(...xs), rx=Math.max(...xs);
+  mk('line',{x1:n.lx,y1,x2:n.lx,y2:by,stroke:n.b,'stroke-width':1.5,'stroke-linecap':'round'},svg);
+  if(lx<rx) mk('line',{x1:lx,y1:by,x2:rx,y2:by,stroke:n.b,'stroke-width':1.5},svg);
+  n.c.forEach(ch=>mk('line',{x1:ch.lx,y1:by,x2:ch.lx,y2,stroke:n.b,'stroke-width':1.5,'stroke-linecap':'round'},svg));
+});
+
+// Nodes
+all.forEach(n=>{
+  const lines = n.name.split('\n'), lh = FS+2.5, tH = lines.length*lh;
+
+  mk('rect',{
+    x:n.lx-NW/2, y:n.ly-NH/2, width:NW, height:NH, rx:3,
+    fill:n.b||'#EEEEEE', stroke:'rgba(0,0,0,.18)', 'stroke-width':1
+  }, svg);
+
+  lines.forEach((l,i)=>{
+    const t = mk('text',{
+      x:n.lx, y:n.ly-tH/2+(i+.82)*lh,
+      'text-anchor':'middle',
+      fill:n.t||'#333333',
+      'font-size':FS,
+      'font-family':'Arial,sans-serif',
+      'font-weight':n.b?'500':'400'
+    }, svg);
+    t.textContent = l;
+  });
+
+  // Task boxes
+  n.tasks?.forEach((task,ti)=>{
+    const ty = n.ly+NH/2 + ti*(TH+TG);
+    const tls = task.split('\n'), tlh = TFS+2, tlH = tls.length*tlh;
+
+    mk('rect',{
+      x:n.lx-NW/2, y:ty, width:NW, height:TH, rx:2,
+      fill:'#F8F8F8', stroke:'#CCCCCC', 'stroke-width':1
+    }, svg);
+
+    tls.forEach((tl,j)=>{
+      const t = mk('text',{
+        x:n.lx, y:ty+TH/2-tlH/2+(j+.82)*tlh,
+        'text-anchor':'middle',
+        fill:'#333333',
+        'font-size':TFS,
+        'font-family':'Arial,sans-serif'
+      }, svg);
+      t.textContent = tl;
+    });
+  });
+});
+
+// Legend
+document.getElementById('leg').innerHTML =
+  '<span><b style="color:#534AB7">■</b> <b>Comprado (novo):</b> Especificação → Compra → Entrega → Testar</span>' +
+  '<span><b style="color:#534AB7">■</b> <b>Fabricado/Impresso:</b> Projetar → DTM → Plano de Processo → Fabricar → Testar</span>' +
+  '<span><b style="color:#534AB7">■</b> <b>Reaproveitado (1ª versão):</b> Verificar estado → Adaptar → Montar → Testar</span>' +
+  '<span><b style="color:#993556">■</b> <b>Eletrônica:</b> Levantamento → Adquirir → Prototipagem → Teste → Fazer Placa → Teste</span>' +
+  '<span><b style="color:#185FA5">■</b> <b>Software:</b> Fluxograma → Programar → Testar</span>';
+</script>
+</body>
+</html>
