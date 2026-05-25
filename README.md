@@ -4,5 +4,6 @@ Arquivos para os modelos criados para o projeto Capstone, realizado em parceria 
 
 ## Estrutura do projeto
 
+- `desenho-tecnico/`: arquivos de desenho técnico.
 - `modelos/`: arquivos de modelagem 3D.
 - `pcb/`: esquemática da PCB.
