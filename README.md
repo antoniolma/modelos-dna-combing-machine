@@ -1,6 +1,6 @@
 # Modelos - Capstone: [A. C. Camargo] Máquina para DNA Combing
 
-Modelos criados para o projeto de controle mecatrônico, realizado em parceria com o **Hospital A. C. Camargo**.
+Arquivos para os modelos criados para o projeto Capstone, realizado em parceria com o **Hospital A. C. Camargo**.
 
 ## Estrutura do projeto
 
